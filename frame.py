@@ -1,4 +1,4 @@
-# Audio-Video Datamosh Script
+# Audio-Video Datamosh Script - Frame
 # by Marceline / Marc Browning
 
 import wave, os, ffmpeg
@@ -7,9 +7,6 @@ from pedalboard.io import AudioFile # type: ignore
 
 BMP_HEADER_SIZE = 54 # in bytes
 WAV_HEADER_SIZE = 46 # in bytes
-
-NUMBER_OF_FRAMES = 906 # number of images, including start and endpoints
-FIRST_FILE_NUM = 1;
 
 PARENT_DIRECTORY  = "C:\\Users\\ORION\Downloads\\audioFXonVideoProofofConcept\\"
 FRAME_DIRECTORY = PARENT_DIRECTORY + "frames\\"
@@ -45,7 +42,7 @@ class Frame:
         self.__working = True
 
     def edit_frame(self, board):
-    # add audio effects to frame
+    ## add audio effects to frame
         # check if frame is in working state
         if not self.__working: raise ValueError("Frame " + self.__filename + " not in working state.")
         # read the current working wav
@@ -56,7 +53,7 @@ class Frame:
         with AudioFile(WAV_DIRECTORY + self.__wav_file_name, "w", GLOBAL_SAMPLE_RATE, CHANNEL_NUM) as o: o.write(effected)
     
     def export_frame(self):
-    # export the frame, end it from being worked on, and delete the wav.
+    ## export the frame, end it from being worked on, and delete the wav.
 
         # open wav as binary
         with open(WAV_DIRECTORY + self.__wav_file_name, "rb") as f:
@@ -73,7 +70,7 @@ class Frame:
         if self.__debug: print("Frame " + self.__filename + " done!")
 
     def revert_frame(self):
-    # if the frame corrupts, set it back to its original state
+    ## if the frame corrupts, set it back to its original state
         with open(FRAME_DIRECTORY + self.__filename, "wb") as f: f.write(self.__frame_header + self.__data)
 
 # helper function
@@ -85,12 +82,6 @@ def bytes_to_wav(data, filename):
         wav_file.setframerate(GLOBAL_SAMPLE_RATE)
         wav_file.writeframes(data)
 
-class Video:
-    # a video stream
-    __slots__ = ["__stream"]
-    def __init__(self, filename):
-
-        
 
 #### old code ####
 
@@ -124,11 +115,3 @@ def pad_filename(current_frame, MAX_STR_SIZE = 3):
     result = str(current_frame)
     while len(result) != MAX_STR_SIZE: result = "0" + result
     return result
-
-def main():
-    for i in range(NUMBER_OF_FRAMES):
-        current_filename = CURRENT_DIRECTORY + pad_filename(i+FIRST_FILE_NUM) + ".bmp"
-        edit_file(current_filename)
-
-
-if __name__ == "__main__": main()
