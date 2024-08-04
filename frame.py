@@ -1,14 +1,14 @@
 # Audio-Video Datamosh Script - Frame
 # by Marceline / Marc Browning
 
-import wave, os, ffmpeg
-from pedalboard import Pedalboard, Chorus, Reverb # type: ignore
+import wave, os, ffmpeg, imghdr, pedalboard
+from pedalboard import Pedalboard # type: ignore
 from pedalboard.io import AudioFile # type: ignore
 
 BMP_HEADER_SIZE = 54 # in bytes
 WAV_HEADER_SIZE = 46 # in bytes
 
-PARENT_DIRECTORY  = "C:\\Users\\ORION\Downloads\\audioFXonVideoProofofConcept\\"
+PARENT_DIRECTORY  = ".\\"
 FRAME_DIRECTORY = PARENT_DIRECTORY + "frames\\"
 WAV_DIRECTORY = FRAME_DIRECTORY
 
@@ -34,12 +34,14 @@ class Frame:
         self.__filename = filename
         # debug param
         self.__debug = debug
+        # if debug: print("filetype: " + imghdr.what(FRAME_DIRECTORY + filename))
     
     def set_working_frame(self):
     # turn frame into current working wav
         bytes_to_wav(self.__data, WAV_DIRECTORY + self.__wav_file_name)
         # set working state to True
         self.__working = True
+        # if self.__debug: print("filetype: " + imghdr.what(FRAME_DIRECTORY + self.__filename))
 
     def edit_frame(self, board):
     ## add audio effects to frame
@@ -51,6 +53,7 @@ class Frame:
         effected = board(audio, GLOBAL_SAMPLE_RATE)  
         # output to the working wav
         with AudioFile(WAV_DIRECTORY + self.__wav_file_name, "w", GLOBAL_SAMPLE_RATE, CHANNEL_NUM) as o: o.write(effected)
+        # if self.__debug: print("filetype: " + imghdr.what(FRAME_DIRECTORY + self.__filename))
     
     def export_frame(self):
     ## export the frame, end it from being worked on, and delete the wav.
@@ -68,6 +71,7 @@ class Frame:
         os.remove(WAV_DIRECTORY + self.__wav_file_name)
         # print debug info
         if self.__debug: print("Frame " + self.__filename + " done!")
+        # if self.__debug: print("filetype: " + imghdr.what(FRAME_DIRECTORY + self.__filename))
 
     def revert_frame(self):
     ## if the frame corrupts, set it back to its original state
@@ -82,36 +86,11 @@ def bytes_to_wav(data, filename):
         wav_file.setframerate(GLOBAL_SAMPLE_RATE)
         wav_file.writeframes(data)
 
+def main():
+## for debugging
+    my_frame = Frame("testimage.bmp", debug=True)
+    my_frame.set_working_frame()
+    my_frame.edit_frame(Pedalboard([pedalboard.Chorus(), pedalboard.Reverb(room_size=0.7), pedalboard.Bitcrush(bit_depth=5)]))
+    my_frame.export_frame()
 
-#### old code ####
-
-# def edit_file(filename):
-#     # open bmp as binary data
-#     with open(filename, "rb") as f:
-#         data = bytearray(f.read())
-#     # split into header and editable data
-#     header = data[:BMP_HEADER_SIZE+1]
-#     edit_data = data[BMP_HEADER_SIZE+1:]
-#     # turn into a wav file
-#     bytes_to_wav(edit_data, CURRENT_DIRECTORY + WAV_FILE_NAME)
-#     # add effects and re-export wav file
-#     board = Pedalboard([Chorus(), Reverb(room_size=0.25)])
-#     with AudioFile(CURRENT_DIRECTORY + WAV_FILE_NAME) as f:
-#         audio = f.read(f.frames)
-#         effected = board(audio, 44100.0)  
-#     with AudioFile(CURRENT_DIRECTORY + WAV_FILE_NAME, "w", 44100.0, 1) as o: o.write(effected)
-#     # open wav as binary
-#     with open(CURRENT_DIRECTORY + WAV_FILE_NAME, "rb") as f:
-#         data = bytearray(f.read())
-#         edited_data = data[WAV_HEADER_SIZE+1:]
-#     # export
-#     with open(filename, "wb") as f:
-#         f.write(header + edited_data)
-#     # frame done
-#     print("frame done!")
-
-def pad_filename(current_frame, MAX_STR_SIZE = 3):
-    """Add zeroes to the start of the filename if needed."""
-    result = str(current_frame)
-    while len(result) != MAX_STR_SIZE: result = "0" + result
-    return result
+if __name__ == "__main__": main()
