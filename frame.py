@@ -1,7 +1,7 @@
 # Audio-Video Datamosh Script
-# by Marceline Browning
+# by Marceline / Marc Browning
 
-import wave, os, ffmpeg-python
+import wave, os, ffmpeg
 from pedalboard import Pedalboard, Chorus, Reverb # type: ignore
 from pedalboard.io import AudioFile # type: ignore
 
@@ -12,8 +12,9 @@ NUMBER_OF_FRAMES = 906 # number of images, including start and endpoints
 FIRST_FILE_NUM = 1;
 
 PARENT_DIRECTORY  = "C:\\Users\\ORION\Downloads\\audioFXonVideoProofofConcept\\"
-FRAME_DIRECTORY = "C:\\Users\\ORION\Downloads\\audioFXonVideoProofofConcept\\frames\\"
+FRAME_DIRECTORY = PARENT_DIRECTORY + "frames\\"
 WAV_DIRECTORY = FRAME_DIRECTORY
+
 GLOBAL_SAMPLE_RATE = 44100.0
 CHANNEL_NUM = 1
 SAMPLE_WIDTH = 2
@@ -86,8 +87,9 @@ def bytes_to_wav(data, filename):
 
 class Video:
     # a video stream
-
+    __slots__ = ["__stream"]
     def __init__(self, filename):
+
         
 
 #### old code ####
