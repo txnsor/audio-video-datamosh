@@ -26,7 +26,7 @@ def get_length(filename):
 
 class Video:
     # a video stream
-    __slots__ = ["__stream", "__fps", "__number_of_frames", "__frames"]
+    __slots__ = ["__stream", "__fps", "__number_of_frames", "__frames", "__working", "__filename"]
 
     def __init__(self, filename, fps):
         # initialize video stream
@@ -35,6 +35,10 @@ class Video:
         self.__fps = fps
         # get number of frames
         self.__number_of_frames = fps * get_length(PARENT_DIRECTORY + filename)
+        # init working as False
+        self.__working = False
+        # save filename
+        self.__filename = filename
     
     def make_frames(self):
     ## turn stream into frames
@@ -50,9 +54,15 @@ class Video:
         for i in range(FIRST_FRAME_NUM, self.__number_of_frames + FIRST_FRAME_NUM):
             # adds frames to list
             self.__frames.append(frame.Frame(FRAME_DIRECTORY + pad_filename(i) + ".bmp"), debug=debug)
-    
+        self.__working = True
+
     def frames_to_video(self):
+        if not self.__working: raise ValueError("Video not in a working state.")
         # overwrite video with frames
+        ffmpeg.input(FRAME_DIRECTORY + "%0" + PADDING_ZEROES + "d.bmp", pattern_type="glob", framerate=self.__fps
+                     ).output(PARENT_DIRECTORY + "filename").run()
+        self.__working = False
+
 
         
 
