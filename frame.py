@@ -8,10 +8,6 @@ from pedalboard.io import AudioFile # type: ignore
 BMP_HEADER_SIZE = 54 # in bytes
 WAV_HEADER_SIZE = 46 # in bytes
 
-PARENT_DIRECTORY  = ".\\"
-FRAME_DIRECTORY = PARENT_DIRECTORY + "frames\\"
-WAV_DIRECTORY = FRAME_DIRECTORY
-
 GLOBAL_SAMPLE_RATE = 44100.0
 CHANNEL_NUM = 1
 SAMPLE_WIDTH = 2
@@ -22,7 +18,7 @@ class Frame:
 
     def __init__(self, filename, WAV_FILE_NAME="INPROGRESS.wav", debug=False):
         # open bmp as binary data
-        with open(FRAME_DIRECTORY + filename, "rb") as f: data = bytearray(f.read())
+        with open(filename, "rb") as f: data = bytearray(f.read())
         # split into header and editable data
         self.__frame_header = data[:BMP_HEADER_SIZE+1]
         self.__data = data[BMP_HEADER_SIZE+1:]
@@ -38,45 +34,45 @@ class Frame:
     
     def set_working_frame(self):
     # turn frame into current working wav
-        bytes_to_wav(self.__data, WAV_DIRECTORY + self.__wav_file_name)
+        bytes_to_wav(self.__data, self.__wav_file_name)
         # set working state to True
         self.__working = True
         # if self.__debug: print("filetype: " + imghdr.what(FRAME_DIRECTORY + self.__filename))
 
-    def edit_frame(self, board):
+    def audio_datamosh(self, board):
     ## add audio effects to frame
         # check if frame is in working state
         if not self.__working: raise ValueError("Frame " + self.__filename + " not in working state.")
         # read the current working wav
-        with AudioFile(WAV_DIRECTORY + self.__wav_file_name) as f: audio = f.read(f.frames)
+        with AudioFile(self.__wav_file_name) as f: audio = f.read(f.frames)
         # add the effect
         effected = board(audio, GLOBAL_SAMPLE_RATE)  
         # output to the working wav
-        with AudioFile(WAV_DIRECTORY + self.__wav_file_name, "w", GLOBAL_SAMPLE_RATE, CHANNEL_NUM) as o: o.write(effected)
+        with AudioFile(self.__wav_file_name, "w", GLOBAL_SAMPLE_RATE, CHANNEL_NUM) as o: o.write(effected)
         # if self.__debug: print("filetype: " + imghdr.what(FRAME_DIRECTORY + self.__filename))
     
     def export_frame(self):
     ## export the frame, end it from being worked on, and delete the wav.
 
         # open wav as binary
-        with open(WAV_DIRECTORY + self.__wav_file_name, "rb") as f:
+        with open(self.__wav_file_name, "rb") as f:
             data = bytearray(f.read())
             edited_data = data[WAV_HEADER_SIZE+1:]
 
         # write the edited data to the frame
-        with open(FRAME_DIRECTORY + self.__filename, "wb") as f: f.write(self.__frame_header + edited_data)
+        with open(self.__filename, "wb") as f: f.write(self.__frame_header + edited_data)
         # set working state to false
         self.__working = False
         # delete the working wav file
-        os.remove(WAV_DIRECTORY + self.__wav_file_name)
+        os.remove(self.__wav_file_name)
         # print debug info
         if self.__debug: print("Frame " + self.__filename + " done!")
         # if self.__debug: print("filetype: " + imghdr.what(FRAME_DIRECTORY + self.__filename))
 
     def revert_frame(self):
     ## if the frame corrupts, set it back to its original state
-        with open(FRAME_DIRECTORY + self.__filename, "wb") as f: f.write(self.__frame_header + self.__data)
-
+        with open(self.__filename, "wb") as f: f.write(self.__frame_header + self.__data)
+        
 # helper function
 # i would make this an inner function to Frame but private classes don't actually exist in Python, so whatever
 def bytes_to_wav(data, filename):
@@ -86,11 +82,11 @@ def bytes_to_wav(data, filename):
         wav_file.setframerate(GLOBAL_SAMPLE_RATE)
         wav_file.writeframes(data)
 
-def main():
-## for debugging
-    my_frame = Frame("testimage.bmp", debug=True)
-    my_frame.set_working_frame()
-    my_frame.edit_frame(Pedalboard([pedalboard.Chorus(), pedalboard.Reverb(room_size=0.7), pedalboard.Bitcrush(bit_depth=5)]))
-    my_frame.export_frame()
+# def main():
+# ## for debugging
+#     my_frame = Frame("testimage.bmp", debug=True)
+#     my_frame.set_working_frame()
+#     my_frame.audio_datamosh(Pedalboard([pedalboard.Chorus(), pedalboard.Reverb(room_size=0.7), pedalboard.Bitcrush(bit_depth=5)]))
+#     my_frame.export_frame()
 
-if __name__ == "__main__": main()
+# if __name__ == "__main__": main()
