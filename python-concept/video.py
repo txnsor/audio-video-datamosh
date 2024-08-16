@@ -1,7 +1,7 @@
 # Audio-Video Datamosh Script - Video
 # by Marceline / Marc Browning
 
-import os, ffmpeg, frame, pedalboard, math, time
+import os, ffmpeg, frame, pedalboard, math, time, shutil
 
 PADDING_ZEROES = 5
 FIRST_FRAME_NUM = 0
@@ -58,8 +58,7 @@ class Video:
 
     def clear_frames(self):
         # delete all frames in the folder
-        import glob
-        for f in glob.glob(self.__path):os.remove(f)
+        shutil.rmtree(self.__path)
     
     def frames_to_video(self, out):
         if not self.__working: raise ValueError("Video not in a working state.")
@@ -79,9 +78,31 @@ def audio_datamosh(effects, in_video, out_video, fps):
 
     print("adding effects...")
     for frame in frames:
-        frame.set_working_frame()
+        frame.set_working_frame_audio()
         frame.audio_datamosh(effects)
-        frame.export_frame()
+        frame.export_frame_audio()
+
+    print("assembling video...")
+    video.set_frames(frames)
+    video.frames_to_video(out_video)
+
+    print("done! exported to " + out_video)
+    end = time.time()
+    print("elapsed: " + str(end - start) + " seconds")
+
+def search_and_replace(se, rp, in_video, out_video, fps):
+    start = time.time()
+    video = Video(in_video, fps)
+
+    print("making frames...")
+    video.make_frames()
+    frames = video.get_frames()
+
+    print("adding effects...")
+    for frame in frames:
+        frame.set_working_frame_other()
+        temp = frame.search_and_replace_datamosh(se, rp)
+        frame.export_frame_other(temp)
 
     print("assembling video...")
     video.set_frames(frames)
@@ -92,13 +113,25 @@ def audio_datamosh(effects, in_video, out_video, fps):
     print("elapsed: " + str(end - start) + " seconds")
 
 def main():
+
+    mode = str(input("(A - audio effects, B - search and replace) \nmode > "))
+
     effects = pedalboard.Pedalboard([pedalboard.Delay(), pedalboard.Reverb(room_size=0.7)])
 
     video = str(input("video file path > "))
     out = str(input("output file path > "))
     fps = float(input("target fps > "))
 
-    audio_datamosh(effects, video, out, fps)
+    if mode == "A":
+        audio_datamosh(effects, video, out, fps)
+    elif mode == "B":
+    # SEARCH AND REPLACE
+        se = input("\nsearch string > ")
+        rp = input("replacement string (this should be the same length as the search string) > ")
+        search_and_replace(se, rp, video, out, fps)
+    else:
+        print("Goodbye!")
+
 
 if __name__ == "__main__": main()
 
