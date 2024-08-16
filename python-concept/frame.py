@@ -1,7 +1,7 @@
 # Audio-Video Datamosh Script - Frame
 # by Marceline / Marc Browning
 
-import wave, os, ffmpeg, imghdr, pedalboard
+import wave, os, ffmpeg, struct, pedalboard
 from pedalboard import Pedalboard # type: ignore
 from pedalboard.io import AudioFile # type: ignore
 
